@@ -765,11 +765,9 @@ function buildOverflowChips(hiddenTabs, urlCounts = {}) {
     const chipClass = count > 1 ? ' chip-has-dupes' : '';
     const safeUrl   = (tab.url || '').replace(/"/g, '&quot;');
     const safeTitle = label.replace(/"/g, '&quot;');
-    let domain = '';
-    try { domain = new URL(tab.url).hostname; } catch {}
-    const faviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=16` : '';
+    const faviconUrl = getFaviconUrl(tab.url);
     return `<div class="page-chip clickable${chipClass}" data-action="focus-tab" data-tab-url="${safeUrl}" title="${safeTitle}">
-      ${faviconUrl ? `<img class="chip-favicon" src="${faviconUrl}" alt="" onerror="this.style.display='none'">` : ''}
+      ${faviconUrl ? `<img class="chip-favicon bm-favicon" src="${faviconUrl}" alt="">` : ''}
       <span class="chip-text">${label}</span>${dupeTag}
       <div class="chip-actions">
         <button class="chip-action chip-save" data-action="defer-single-tab" data-tab-url="${safeUrl}" data-tab-title="${safeTitle}" title="Save for later">
@@ -846,11 +844,9 @@ function renderDomainCard(group) {
     const chipClass = count > 1 ? ' chip-has-dupes' : '';
     const safeUrl   = (tab.url || '').replace(/"/g, '&quot;');
     const safeTitle = label.replace(/"/g, '&quot;');
-    let domain = '';
-    try { domain = new URL(tab.url).hostname; } catch {}
-    const faviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=16` : '';
+    const faviconUrl = getFaviconUrl(tab.url);
     return `<div class="page-chip clickable${chipClass}" data-action="focus-tab" data-tab-url="${safeUrl}" title="${safeTitle}">
-      ${faviconUrl ? `<img class="chip-favicon" src="${faviconUrl}" alt="" onerror="this.style.display='none'">` : ''}
+      ${faviconUrl ? `<img class="chip-favicon bm-favicon" src="${faviconUrl}" alt="">` : ''}
       <span class="chip-text">${label}</span>${dupeTag}
       <div class="chip-actions">
         <button class="chip-action chip-save" data-action="defer-single-tab" data-tab-url="${safeUrl}" data-tab-title="${safeTitle}" title="Save for later">
@@ -966,7 +962,7 @@ async function renderDeferredColumn() {
 function renderDeferredItem(item) {
   let domain = '';
   try { domain = new URL(item.url).hostname.replace(/^www\./, ''); } catch {}
-  const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=16`;
+  const faviconUrl = getFaviconUrl(item.url);
   const ago = timeAgo(item.savedAt);
 
   return `
@@ -974,7 +970,7 @@ function renderDeferredItem(item) {
       <input type="checkbox" class="deferred-checkbox" data-action="check-deferred" data-deferred-id="${item.id}">
       <div class="deferred-info">
         <a href="${item.url}" target="_blank" rel="noopener" class="deferred-title" title="${(item.title || '').replace(/"/g, '&quot;')}">
-          <img src="${faviconUrl}" alt="" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px" onerror="this.style.display='none'">${item.title || item.url}
+          <img class="bm-favicon" src="${faviconUrl}" alt="" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px">${item.title || item.url}
         </a>
         <div class="deferred-meta">
           <span>${domain}</span>
@@ -1480,3 +1476,266 @@ document.addEventListener('input', async (e) => {
    INITIALIZE
    ---------------------------------------------------------------- */
 renderDashboard();
+renderBookmarksBar();
+
+
+/* ----------------------------------------------------------------
+   BOOKMARKS BAR — Synced from Chrome Bookmarks Bar
+
+   Reads the user's "Bookmarks Bar" folder from chrome.bookmarks API
+   and renders it as a row of links at the top of the page, mimicking
+   Chrome's native bookmarks bar behavior.
+   ---------------------------------------------------------------- */
+
+/**
+ * getFaviconUrl(pageUrl)
+ *
+ * Returns the best favicon URL for a given page URL.
+ * Uses Chrome's built-in _favicon API (requires "favicon" permission)
+ * which accesses the browser's local favicon cache — much better coverage
+ * than external services like Google's favicon API.
+ */
+function getFaviconUrl(pageUrl) {
+  if (!pageUrl) return '';
+  try {
+    const url = new URL(pageUrl);
+    // Chrome's _favicon API — gives us the same icon Chrome uses internally
+    return `chrome-extension://${chrome.runtime.id}/_favicon/?pageUrl=${encodeURIComponent(url.origin)}&size=32`;
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * renderBookmarksBar()
+ *
+ * Fetches bookmarks from the "Bookmarks Bar" folder (always ID "1" in Chrome)
+ * and renders them as clickable links. Folders get dropdown menus.
+ */
+async function renderBookmarksBar() {
+  const bar = document.getElementById('bookmarksBar');
+  if (!bar) return;
+
+  // Guard: chrome.bookmarks may not be available if permission not yet granted
+  if (!chrome.bookmarks) {
+    console.warn('[tab-out] chrome.bookmarks API not available');
+    bar.innerHTML = '';
+    return;
+  }
+
+  try {
+    // Chrome's bookmarks bar is always the first child of the root (ID "1")
+    const bookmarkBarNodes = await chrome.bookmarks.getChildren('1');
+
+    if (!bookmarkBarNodes || bookmarkBarNodes.length === 0) {
+      bar.innerHTML = '';
+      return;
+    }
+
+    // Fallback globe SVG for when favicon fails to load
+    const globeSvg = `<svg class="bookmark-fallback-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" /></svg>`;
+
+    const bookmarkItems = bookmarkBarNodes.map(node => {
+      if (node.url) {
+        const faviconUrl = getFaviconUrl(node.url);
+        const title = node.title || '';
+        const displayTitle = title.trim();
+        let domain = '';
+        try { domain = new URL(node.url).hostname; } catch {}
+        const tooltip = displayTitle || domain || node.url;
+        const imgTag = faviconUrl
+          ? `<img class="bm-favicon" src="${faviconUrl}" alt="">${globeSvg}`
+          : `${globeSvg.replace('bookmark-fallback-icon', 'bookmark-fallback-icon bm-fallback-visible')}`;
+        if (!displayTitle) {
+          return `<a class="bookmark-item icon-only" href="${node.url}" title="${tooltip.replace(/"/g, '&quot;')}">
+            ${imgTag}
+          </a>`;
+        }
+        return `<a class="bookmark-item" href="${node.url}" title="${tooltip.replace(/"/g, '&quot;')}">
+          ${imgTag}
+          <span>${displayTitle}</span>
+        </a>`;
+      } else {
+        return `<div class="bookmark-folder" data-folder-id="${node.id}">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+          </svg>
+          <span class="bookmark-folder-name">${node.title || 'Folder'}</span>
+          <div class="bookmark-folder-dropdown" data-folder-id="${node.id}"></div>
+        </div>`;
+      }
+    }).join('');
+
+    // Add overflow ">>" button at the end
+    bar.innerHTML = bookmarkItems;
+
+    // After render, detect which items overflow and populate the ">>" dropdown
+    requestAnimationFrame(() => {
+      detectBookmarkOverflow(bookmarkBarNodes);
+    });
+
+  } catch (err) {
+    console.warn('[tab-out] Could not load bookmarks:', err);
+    bar.innerHTML = '';
+  }
+}
+
+/**
+ * Favicon error handler — uses event delegation instead of inline onerror
+ * (Chrome extension CSP forbids inline event handlers)
+ */
+document.addEventListener('error', (e) => {
+  if (e.target.classList && e.target.classList.contains('bm-favicon')) {
+    e.target.style.display = 'none';
+    // Show the fallback globe sibling
+    const fallback = e.target.nextElementSibling;
+    if (fallback && fallback.classList.contains('bookmark-fallback-icon')) {
+      fallback.style.display = 'inline-flex';
+    }
+  }
+}, true); // useCapture=true so we catch the error event (it doesn't bubble)
+
+/**
+ * detectBookmarkOverflow(allNodes)
+ *
+ * Checks which bookmark items are hidden by overflow and shows the ">>"
+ * button with a dropdown containing the hidden ones.
+ */
+function detectBookmarkOverflow(allNodes) {
+  const bar = document.getElementById('bookmarksBar');
+  const overflowBtn = document.getElementById('bookmarkOverflowBtn');
+  if (!bar || !overflowBtn) return;
+
+  const barRect = bar.getBoundingClientRect();
+  const items = bar.querySelectorAll('.bookmark-item, .bookmark-folder');
+  let firstHiddenIndex = -1;
+
+  // Reserve space for the ">>" button (~32px)
+  const maxRight = barRect.right - 40;
+
+  for (let i = 0; i < items.length; i++) {
+    const itemRect = items[i].getBoundingClientRect();
+    if (itemRect.right > maxRight) {
+      firstHiddenIndex = i;
+      break;
+    }
+  }
+
+  if (firstHiddenIndex === -1) {
+    // Everything fits — hide the overflow button
+    overflowBtn.style.display = 'none';
+    return;
+  }
+
+  // Show the overflow button
+  overflowBtn.style.display = 'inline-flex';
+
+  // Build dropdown content from hidden nodes
+  const globeSvg = `<svg class="bookmark-fallback-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" /></svg>`;
+
+  const hiddenNodes = allNodes.slice(firstHiddenIndex);
+  const dropdown = document.getElementById('bookmarkOverflowDropdown');
+  if (!dropdown) return;
+
+  dropdown.innerHTML = hiddenNodes.map(node => {
+    if (node.url) {
+      const faviconUrl = getFaviconUrl(node.url);
+      let domain = '';
+      try { domain = new URL(node.url).hostname; } catch {}
+      const title = node.title || domain || node.url;
+      const imgTag = faviconUrl
+        ? `<img class="bm-favicon" src="${faviconUrl}" alt="">${globeSvg}`
+        : `${globeSvg.replace('bookmark-fallback-icon', 'bookmark-fallback-icon bm-fallback-visible')}`;
+      return `<a class="bookmark-item" href="${node.url}" title="${title.replace(/"/g, '&quot;')}">
+        ${imgTag}
+        <span>${title}</span>
+      </a>`;
+    } else {
+      return `<a class="bookmark-item" href="#" data-subfolder-id="${node.id}" style="color:#333;">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px;color:#5f6368;"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" /></svg>
+        <span>${node.title || 'Folder'}</span>
+      </a>`;
+    }
+  }).join('');
+  dropdown.dataset.loaded = 'true';
+}
+
+// ---- Bookmark folder click — load children and toggle dropdown ----
+document.addEventListener('click', async (e) => {
+  const folder = e.target.closest('.bookmark-folder') || e.target.closest('.bookmark-overflow-btn');
+
+  // Close all open dropdowns if clicking outside
+  if (!folder) {
+    document.querySelectorAll('.bookmark-folder-dropdown.open').forEach(d => {
+      d.classList.remove('open');
+    });
+    return;
+  }
+
+  // Don't interfere if clicking a link inside the dropdown
+  if (e.target.closest('a.bookmark-item')) return;
+
+  const dropdown = folder.querySelector('.bookmark-folder-dropdown');
+  if (!dropdown) return;
+
+  // Close other open dropdowns
+  document.querySelectorAll('.bookmark-folder-dropdown.open').forEach(d => {
+    if (d !== dropdown) d.classList.remove('open');
+  });
+
+  // Toggle this dropdown
+  if (dropdown.classList.contains('open')) {
+    dropdown.classList.remove('open');
+    return;
+  }
+
+  // Load folder contents if not yet loaded
+  if (!dropdown.dataset.loaded) {
+    try {
+      const folderId = folder.dataset.folderId;
+      const children = await chrome.bookmarks.getChildren(folderId);
+      const globeFallback = `<svg class="bookmark-fallback-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" /></svg>`;
+      dropdown.innerHTML = children.map(node => {
+        if (node.url) {
+          let domain = '';
+          try { domain = new URL(node.url).hostname; } catch {}
+          const faviconUrl = getFaviconUrl(node.url);
+          const title = node.title || domain || node.url;
+          const imgTag = faviconUrl
+            ? `<img class="bm-favicon" src="${faviconUrl}" alt="">${globeFallback}`
+            : `${globeFallback.replace('bookmark-fallback-icon', 'bookmark-fallback-icon bm-fallback-visible')}`;
+          return `<a class="bookmark-item" href="${node.url}" title="${title.replace(/"/g, '&quot;')}">
+            ${imgTag}
+            <span>${title}</span>
+          </a>`;
+        } else {
+          // Sub-folder
+          return `<div class="bookmark-item" style="color:#333;cursor:default;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:16px;height:16px;color:#5f6368;">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+            </svg>
+            <span>${node.title || 'Folder'}</span>
+          </div>`;
+        }
+      }).join('') || '<div style="padding:8px 10px;font-size:12px;color:#9aa0a6;">(empty)</div>';
+      dropdown.dataset.loaded = 'true';
+    } catch (err) {
+      console.warn('[tab-out] Could not load folder contents:', err);
+      dropdown.innerHTML = '<div style="padding:8px 10px;font-size:12px;color:#9aa0a6;">Failed to load</div>';
+    }
+  }
+
+  // Position the dropdown below the folder using fixed positioning
+  const folderRect = folder.getBoundingClientRect();
+  dropdown.style.top = folderRect.bottom + 2 + 'px';
+  // For overflow button, align dropdown to the right edge
+  if (folder.classList.contains('bookmark-overflow-btn')) {
+    dropdown.style.left = '';
+    dropdown.style.right = (window.innerWidth - folderRect.right) + 'px';
+  } else {
+    dropdown.style.right = '';
+    dropdown.style.left = folderRect.left + 'px';
+  }
+
+  dropdown.classList.add('open');
+});

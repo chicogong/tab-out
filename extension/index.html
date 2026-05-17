@@ -12,9 +12,19 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<!-- ================================================================
+     BOOKMARKS BAR — synced from Chrome bookmarks bar (full-width, native style)
+     ================================================================ -->
+<div class="bookmarks-bar-wrapper">
+  <div class="bookmarks-bar" id="bookmarksBar"></div>
+  <div class="bookmark-overflow-btn" id="bookmarkOverflowBtn" title="More bookmarks" style="display:none;">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+    <div class="bookmark-folder-dropdown" id="bookmarkOverflowDropdown"></div>
+  </div>
+</div>
+
 <div class="container">
-
-
 
   <!-- ================================================================
        HEADER — greeting on the left
@@ -127,7 +137,7 @@
 
 <!-- Personal config (gitignored) — defines LOCAL_LANDING_PAGE_PATTERNS etc. -->
 <!-- If the file doesn't exist, that's fine — app.js uses sensible defaults. -->
-<script src="config.local.js" onerror="/* no personal config, that's fine */"></script>
+<script src="config.local.js"></script>
 
 <!-- Main dashboard logic — loads last so the DOM is ready -->
 <script src="app.js"></script>

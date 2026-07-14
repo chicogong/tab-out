@@ -83,8 +83,10 @@ chrome.tabs.onRemoved.addListener(() => {
 });
 
 // Update badge when a tab's URL changes (e.g. navigating to/from chrome://)
-chrome.tabs.onUpdated.addListener(() => {
-  updateBadge();
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.url) {
+    updateBadge();
+  }
 });
 
 // ─── Initial run ─────────────────────────────────────────────────────────────

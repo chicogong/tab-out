@@ -1,0 +1,194 @@
+/* ============================================================
+   Tab Out - "Command Center" (Linear / Vercel Aesthetic)
+   ============================================================ */
+
+/* Force System Fonts for a sharp, native, developer-tool look */
+* {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+:root {
+  --radius-lg: 8px;
+  --radius-md: 4px;
+  
+  /* Light Mode - Crisp, High Contrast */
+  --ink: #111111;
+  --paper: #F7F7F8;
+  --warm-gray: #EAEAEA;
+  --muted: #888888;
+  --card-bg: #FFFFFF;
+  
+  --status-active: #0070F3; /* Vercel Blue */
+  --accent-amber: #F5A623;
+  --accent-rose: #E00;
+  
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-hover: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #EDEDED;
+    --paper: #000000;
+    --warm-gray: #333333;
+    --muted: #888888;
+    --card-bg: #0A0A0A;
+    
+    --shadow-sm: 0 0 0 1px rgba(255,255,255,0.1);
+    --shadow-hover: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.2);
+  }
+}
+
+body {
+  background: var(--paper) !important;
+}
+body::before {
+  display: none !important; /* Remove original noise */
+}
+
+/* 1. Header (Ultra-minimal) */
+header {
+  border-bottom: 1px solid var(--warm-gray);
+  padding-bottom: 16px;
+  margin-bottom: 32px;
+}
+#greeting {
+  display: none !important; /* Remove Good morning */
+}
+#dateDisplay {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: var(--ink) !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+}
+
+/* Hide Section Titles like "Open tabs" */
+.section-header {
+  display: none !important;
+}
+
+/* 2. Cards */
+.mission-card {
+  border-radius: var(--radius-lg) !important;
+  border: 1px solid var(--warm-gray) !important;
+  box-shadow: var(--shadow-sm) !important;
+  background: var(--card-bg) !important;
+  transition: all 0.2s ease !important;
+  padding: 16px !important;
+}
+.mission-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-hover) !important;
+  border-color: var(--muted) !important;
+}
+.mission-card::before {
+  display: none !important; /* Remove top colored bar */
+}
+
+/* Domain Name */
+.mission-name {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+
+/* Tab Count Badge */
+.open-tabs-badge {
+  background: transparent !important;
+  border: 1px solid var(--warm-gray) !important;
+  color: var(--muted) !important;
+  border-radius: 99px !important;
+  padding: 2px 8px !important;
+}
+
+/* 3. Tab Chips */
+.page-chip {
+  border-bottom: 1px solid var(--warm-gray) !important;
+  padding: 8px 4px !important;
+  border-radius: 0 !important;
+}
+.page-chip:last-child {
+  border-bottom: none !important;
+}
+.page-chip.clickable:hover {
+  background: rgba(128,128,128,0.08) !important;
+  border-radius: var(--radius-md) !important;
+  border-bottom-color: transparent !important;
+}
+.chip-text {
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+
+/* 4. Action Buttons (Clean & Snappy) */
+.action-btn {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--warm-gray) !important;
+  color: var(--ink) !important;
+  border-radius: var(--radius-md) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  padding: 6px 12px !important;
+  transition: all 0.1s ease !important;
+}
+.action-btn:hover {
+  background: var(--ink) !important;
+  color: var(--paper) !important;
+  border-color: var(--ink) !important;
+}
+
+.chip-action {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--warm-gray) !important;
+  border-radius: var(--radius-md) !important;
+  opacity: 0 !important; 
+}
+.page-chip:hover .chip-action {
+  opacity: 1 !important;
+}
+.chip-action:hover {
+  background: var(--ink) !important;
+  color: var(--paper) !important;
+  border-color: var(--ink) !important;
+}
+
+/* 5. Minimalist Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--warm-gray);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+/* 6. Instant / Smooth Page Load (Overriding slow staggers) */
+/* Original style.css adds up to 0.65s artificial delay. We kill that here. */
+header, 
+.tab-cleanup-banner, 
+.nudge-banner, 
+.active-section .section-header, 
+.active-section .missions .mission-card,
+.abandoned-section .section-header,
+.abandoned-section .missions .mission-card,
+.deferred-column .section-header,
+.deferred-list .deferred-item,
+footer {
+  animation: none !important; /* Kill the staggered fadeUp */
+}
+
+/* Add a single, incredibly fast and snappy fade-in to the whole container instead */
+.container {
+  animation: snapIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+@keyframes snapIn {
+  from { opacity: 0; transform: scale(0.99) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}

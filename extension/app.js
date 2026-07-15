@@ -194,7 +194,6 @@ async function closeTabOutDupes() {
     tabOutTabs[0];
   const toClose = tabOutTabs.filter(t => t.id !== keep.id).map(t => t.id);
   if (toClose.length > 0) await chrome.tabs.remove(toClose);
-  await fetchOpenTabs();
 }
 
 
@@ -741,26 +740,6 @@ function getRealTabs() {
   });
 }
 
-/**
- * checkTabOutDupes()
- *
- * Counts how many Tab Out pages are open. If more than 1,
- * shows a banner offering to close the extras.
- */
-function checkTabOutDupes() {
-  const tabOutTabs = openTabs.filter(t => t.isTabOut);
-  const banner  = document.getElementById('tabOutDupeBanner');
-  const countEl = document.getElementById('tabOutDupeCount');
-  if (!banner) return;
-
-  if (tabOutTabs.length > 1) {
-    if (countEl) countEl.textContent = tabOutTabs.length;
-    banner.style.display = 'flex';
-  } else {
-    banner.style.display = 'none';
-  }
-}
-
 
 /* ----------------------------------------------------------------
    OVERFLOW CHIPS ("+N more" expand button in domain cards)
@@ -1029,6 +1008,9 @@ async function renderStaticDashboard() {
   if (greetingEl) greetingEl.textContent = getGreeting();
   if (dateEl)     dateEl.textContent     = getDateDisplay();
 
+  // --- Auto-close duplicate Tab Out tabs ---
+  await closeTabOutDupes();
+
   // --- Fetch tabs ---
   await fetchOpenTabs();
   const realTabs = getRealTabs();
@@ -1165,7 +1147,6 @@ async function renderStaticDashboard() {
   if (statTabs) statTabs.textContent = openTabs.length;
 
   // --- Check for duplicate Tab Out tabs ---
-  checkTabOutDupes();
 
   // --- Render "Saved for Later" column ---
   await renderDeferredColumn();
@@ -1191,19 +1172,6 @@ document.addEventListener('click', async (e) => {
 
   const action = actionEl.dataset.action;
 
-  // ---- Close duplicate Tab Out tabs ----
-  if (action === 'close-tabout-dupes') {
-    await closeTabOutDupes();
-    playCloseSound();
-    const banner = document.getElementById('tabOutDupeBanner');
-    if (banner) {
-      banner.style.transition = 'opacity 0.4s';
-      banner.style.opacity = '0';
-      setTimeout(() => { banner.style.display = 'none'; banner.style.opacity = '1'; }, 400);
-    }
-    showToast('Closed extra Tab Out tabs');
-    return;
-  }
 
   const card = actionEl.closest('.mission-card');
 

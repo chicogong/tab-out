@@ -33,6 +33,7 @@ Compared to the upstream project, this Minimalist Edition introduces the followi
 - **Zero Information Anxiety**: Removed peripheral features such as the "Saved for Later" sidebar and bookmark icons to maintain a pure, single-column focus layout.
 - **Strict Content Security Policy (CSP)**: Refactored the core logic to eliminate all inline `onclick` and `onerror` handlers, achieving 100% compliance with strict Chrome Manifest V3 security requirements.
 - **XSS Prevention**: Implemented robust HTML escaping for all dynamic tab titles and URLs to prevent Cross-Site Scripting attacks.
+- **Smart Dashboard Auto-Cleanup**: Automatically and silently closes any duplicate Tab Out pages running in the background whenever a new one is opened, ensuring you never have multiple empty dashboards cluttering your browser.
 
 ## Features
 

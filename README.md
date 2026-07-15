@@ -1,91 +1,79 @@
-# Tab Out
+<div align="center">
 
-**Keep tabs on your tabs.**
+# Tab Out (Minimalist Edition)
 
-Tab Out is a Chrome extension that replaces your new tab page with a dashboard of everything you have open. Tabs are grouped by domain, with homepages (Gmail, X, LinkedIn, etc.) pulled into their own group. Close tabs with a satisfying swoosh + confetti.
+**Turn your "New Tab" page into a clean, distraction-free mission control.**
 
-No server. No account. No external API calls. Just a Chrome extension.
+![Tab Out Dashboard](assets/screenshot-v8.png)
 
----
+<div>
+  <a href="README.md">English</a>
+  <span>&nbsp;|&nbsp;</span>
+  <a href="README_zh.md">简体中文</a>
+</div>
+<br>
 
-## Install with a coding agent
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Chrome Extension](https://img.shields.io/badge/Chrome-Manifest_V3-green.svg)](#)
+[![Zero Dependencies](https://img.shields.io/badge/Dependencies-0-success.svg)](#)
 
-Send your coding agent (Claude Code, Codex, etc.) this repo and say **"install this"**:
+</div>
 
-```
-https://github.com/zarazhangrui/tab-out
-```
+## Introduction
 
-The agent will walk you through it. Takes about 1 minute.
+Tab Out is a lightweight Chrome extension that replaces your new tab page with an organized dashboard of all your open tabs. By automatically grouping tabs by domain and prioritizing homepages, it helps you regain focus and quickly triage your browser workspace. 
 
----
+This repository is a **heavily customized Minimalist Edition** of the original project, redesigned with a strict "less is more" philosophy and enhanced security standards.
+
+## Why this fork?
+
+Compared to the upstream project, this Minimalist Edition introduces the following architectural and design changes:
+
+- **Premium UI Redesign**: Replaced the original styling with a sleek, distraction-free monochrome aesthetic and glassmorphism components.
+- **Zero Information Anxiety**: Removed peripheral features such as the "Saved for Later" sidebar and bookmark icons to maintain a pure, single-column focus layout.
+- **Strict Content Security Policy (CSP)**: Refactored the core logic to eliminate all inline `onclick` and `onerror` handlers, achieving 100% compliance with strict Chrome Manifest V3 security requirements.
+- **XSS Prevention**: Implemented robust HTML escaping for all dynamic tab titles and URLs to prevent Cross-Site Scripting attacks.
 
 ## Features
 
-- **See all your tabs at a glance** on a clean grid, grouped by domain
-- **Homepages group** pulls Gmail inbox, X home, YouTube, LinkedIn, GitHub homepages into one card
-- **Close tabs with style** with swoosh sound + confetti burst
-- **Duplicate detection** flags when you have the same page open twice, with one-click cleanup
-- **Click any tab to jump to it** across windows, no new tab opened
-- **Save for later** bookmark tabs to a checklist before closing them
-- **Localhost grouping** shows port numbers next to each tab so you can tell your vibe coding projects apart
-- **Expandable groups** show the first 8 tabs with a clickable "+N more"
-- **100% local** your data never leaves your machine
-- **Pure Chrome extension** no server, no Node.js, no npm, no setup beyond loading the extension
+- **Domain-based Grouping**: Automatically organizes scattered tabs into a clean grid by domain.
+- **Homepage Aggregation**: Intelligently groups frequently used web applications (Gmail, X, YouTube, GitHub, etc.) into a prioritized top card.
+- **Duplicate Detection**: Flags duplicate tabs pointing to the exact same URL, enabling one-click cleanup.
+- **Instant Navigation**: Click any tab title to jump directly to it across windows, preventing unnecessary new tabs.
+- **Developer Friendly**: Automatically distinguishes localhost tabs by their port numbers.
+- **Privacy First**: 100% local execution. No external servers, no tracking, and no data leaves your machine.
+- **Zero Dependencies**: Pure vanilla JavaScript. No Node.js, no bundlers, and no setup required.
 
----
+## Installation
 
-## Manual Setup
+### Manual Setup
 
-**1. Clone the repo**
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/chicogong/tab-out.git
+   ```
 
-```bash
-git clone https://github.com/zarazhangrui/tab-out.git
-```
+2. **Load into Chrome:**
+   - Navigate to `chrome://extensions` in your browser.
+   - Enable **Developer mode** using the toggle in the top right corner.
+   - Click **Load unpacked** in the top left corner.
+   - Select the `extension/` directory from the cloned repository.
 
-**2. Load the Chrome extension**
+3. **Verify Installation:**
+   - Open a new tab (Cmd/Ctrl + T). You should immediately see the Tab Out dashboard.
 
-1. Open Chrome and go to `chrome://extensions`
-2. Enable **Developer mode** (top-right toggle)
-3. Click **Load unpacked**
-4. Navigate to the `extension/` folder inside the cloned repo and select it
+## Tech Stack
 
-**3. Open a new tab**
-
-You'll see Tab Out.
-
----
-
-## How it works
-
-```
-You open a new tab
-  -> Tab Out shows your open tabs grouped by domain
-  -> Homepages (Gmail, X, etc.) get their own group at the top
-  -> Click any tab title to jump to it
-  -> Close groups you're done with (swoosh + confetti)
-  -> Save tabs for later before closing them
-```
-
-Everything runs inside the Chrome extension. No external server, no API calls, no data sent anywhere. Saved tabs are stored in `chrome.storage.local`.
-
----
-
-## Tech stack
-
-| What | How |
-|------|-----|
-| Extension | Chrome Manifest V3 |
-| Storage | chrome.storage.local |
-| Sound | Web Audio API (synthesized, no files) |
-| Animations | CSS transitions + JS confetti particles |
-
----
+- **Extension API**: Chrome Manifest V3
+- **Storage**: `chrome.storage.local`
+- **UI & Animations**: Vanilla HTML, CSS Grid, and custom JS particle engine
+- **Audio**: Web Audio API (dynamically synthesized)
 
 ## License
 
-MIT
+Released under the [MIT License](LICENSE).
 
----
-
-Built by [Zara](https://x.com/zarazhangrui)
+<div align="center">
+  <br>
+  Built by <a href="https://x.com/zarazhangrui">Zara</a> | Forked & Upgraded to Minimalist Edition by <b>Chico</b>
+</div>
